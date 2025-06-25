@@ -18,11 +18,11 @@ IMAGES_DIR = ROOT / 'images'
 DEFAULT_IMAGE = IMAGES_DIR / 'test1.jpg'
 # Videos config
 VIDEO_DIR = ROOT / 'videos'
-VIDEOS_DIST = {
- 'video_1': VIDEO_DIR / 'video_1.mp4',
- 'video_2': VIDEO_DIR / 'video_2.mp4',
- 'video_3': VIDEO_DIR / 'video_3.mp4',
- 'video_4': VIDEO_DIR / 'video_4.mp4',
+VIDEOS_DICT = {
+ 'video1': VIDEO_DIR / 'video1.mp4',
+ 'video2': VIDEO_DIR / 'video2.mp4',
+ 'video3': VIDEO_DIR / 'video3.mp4',
+ 'video4': VIDEO_DIR / 'video4.mp4',
  }
 # ML Model config
 MODEL_DIR = ROOT / 'weights'

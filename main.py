@@ -24,8 +24,7 @@ st.sidebar.header("ML Model Config")
 model_type = st.sidebar.radio("Select Task", ["Detection"])
 confidence = float(st.sidebar.slider("Select Model Confidence", 25, 100, 40)) / 100
 
-# ========== 新增模型选择功能 ==========
-# 可用的YOLOv8模型选项
+# 模型选择功能
 MODEL_OPTIONS = {
     "YOLOv8n (nano)": "yolov8n.pt",
     "YOLOv8s (small)": "yolov8s.pt",
@@ -34,17 +33,14 @@ MODEL_OPTIONS = {
     "YOLOv8x (extra large)": "yolov8x.pt"
 }
 
-# 添加模型选择下拉框
 selected_model_name = st.sidebar.selectbox(
     "Select Model",
     list(MODEL_OPTIONS.keys()),
-    index=0  # 默认选择第一个
+    index=0
 )
 
-# 获取选择的模型文件名
 model_filename = MODEL_OPTIONS[selected_model_name]
 model_path = Path(settings.MODEL_DIR) / model_filename
-# ========== 模型选择功能结束 ==========
 
 # 加载预训练模型
 try:
@@ -54,7 +50,7 @@ try:
 except Exception as ex:
     st.error(f"Unable to load model. Check the specified path: {model_path}")
     st.error(ex)
-    st.stop()  # 如果模型加载失败，停止执行
+    st.stop()
 
 # 数据源配置
 st.sidebar.header("Image/Video Config")
@@ -62,7 +58,6 @@ source_radio = st.sidebar.radio("Select Source", settings.SOURCES_LIST)
 
 # 图像检测功能
 if source_radio == settings.IMAGE:
-    # 上传图像
     source_img = st.sidebar.file_uploader(
         "Choose an image...", 
         type=("jpg", "jpeg", "png", 'bmp', 'webp')
@@ -72,7 +67,6 @@ if source_radio == settings.IMAGE:
     
     with col1:
         try:
-            # 显示默认图像或上传的图像
             if source_img is None:
                 default_image = Image.open(settings.DEFAULT_IMAGE)
                 st.image(default_image, caption="Default Image", use_container_width=True)
@@ -84,12 +78,13 @@ if source_radio == settings.IMAGE:
             st.error(ex)
 
     with col2:
-        # 执行目标检测
         if source_img is not None and st.sidebar.button('Detect Objects'):
             try:
+                # 将PIL图像转换为numpy数组
+                uploaded_image_np = np.array(uploaded_image)
+                
                 # 使用模型进行预测
-                res = model.predict(uploaded_image, conf=confidence)
-                boxes = res[0].boxes
+                res = model.predict(uploaded_image_np, conf=confidence)
                 res_plotted = res[0].plot()[:, :, ::-1]  # BGR转RGB
                 
                 # 显示检测结果
@@ -97,15 +92,15 @@ if source_radio == settings.IMAGE:
                 
                 # 显示检测结果详情
                 with st.expander("Detection Results"):
-                    for box in boxes:
-                        st.write(box.data)
+                    for box in res[0].boxes:
+                        st.write(f"Class: {model.names[int(box.cls)]}, Confidence: {box.conf.item():.2f}")
+                        st.write(f"Coordinates: {box.xyxy.tolist()}")
             except Exception as ex:
                 st.error("Error during detection.")
                 st.error(ex)
 
 # 视频检测功能
 elif source_radio == settings.VIDEO:
-    # 选择视频
     source_video = st.sidebar.selectbox(
         "Choose a video...", 
         list(settings.VIDEOS_DICT.keys())

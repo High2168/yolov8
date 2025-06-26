@@ -2,7 +2,7 @@ from pathlib import Path
 from PIL import Image
 import streamlit as st
 import settings
-import helper
+import helper_all as helper  
 import cv2
 import numpy as np
 
@@ -20,17 +20,16 @@ st.title("Object Detection using YOLOv8")
 # 侧边栏配置
 st.sidebar.header("ML Model Config")
 
-# 模型选项
-model_type = st.sidebar.radio("Select Task", ["Detection"])
+# 任务选择（增加分割选项）
+model_type = st.sidebar.radio("Select Task", ["Detection", "Segmentation"])  # 增加Segmentation
 confidence = float(st.sidebar.slider("Select Model Confidence", 25, 100, 40)) / 100
 
 # 模型选择功能
 MODEL_OPTIONS = {
     "YOLOv8n (nano)": "yolov8n.pt",
     "YOLOv8s (small)": "yolov8s.pt",
-    "YOLOv8m (medium)": "yolov8m.pt",
-    "YOLOv8l (large)": "yolov8l.pt",
-    "YOLOv8x (extra large)": "yolov8x.pt"
+    "YOLOv8x (extra large)": "yolov8x.pt",
+    "YOLOv8n-seg (segmentation)": "yolov8n-seg.pt"  
 }
 
 selected_model_name = st.sidebar.selectbox(
@@ -44,9 +43,8 @@ model_path = Path(settings.MODEL_DIR) / model_filename
 
 # 加载预训练模型
 try:
-    if model_type == 'Detection':
-        model = helper.load_model(model_path)
-        st.sidebar.success(f"Loaded model: {selected_model_name}")
+    model = helper.load_model(model_path)
+    st.sidebar.success(f"Loaded model: {selected_model_name}")
 except Exception as ex:
     st.error(f"Unable to load model. Check the specified path: {model_path}")
     st.error(ex)
@@ -84,8 +82,12 @@ if source_radio == settings.IMAGE:
                 uploaded_image_np = np.array(uploaded_image)
                 
                 # 使用模型进行预测
-                res = model.predict(uploaded_image_np, conf=confidence)
-                res_plotted = res[0].plot()[:, :, ::-1]  # BGR转RGB
+                if "seg" in model_filename:  # 分割模型特殊处理
+                    res = model.predict(uploaded_image_np, conf=confidence)
+                    res_plotted = res[0].plot()[:, :, ::-1]  # BGR转RGB
+                else:
+                    res = model.predict(uploaded_image_np, conf=confidence)
+                    res_plotted = res[0].plot()[:, :, ::-1]  # BGR转RGB
                 
                 # 显示检测结果
                 st.image(res_plotted, caption='Detected Image', use_container_width=True)
@@ -101,22 +103,11 @@ if source_radio == settings.IMAGE:
 
 # 视频检测功能
 elif source_radio == settings.VIDEO:
-    source_video = st.sidebar.selectbox(
-        "Choose a video...", 
-        list(settings.VIDEOS_DICT.keys())
-    )
-    
-    # 执行视频目标检测
-    if st.sidebar.button('Detect Video Objects'):
-        try:
-            video_path = settings.VIDEOS_DICT[source_video]
-            helper.play_stored_video(video_path, confidence, model)
-        except Exception as ex:
-            st.error(f"Error loading video: {str(ex)}")
+    helper.play_stored_video(confidence, model)  # 使用helper_all的函数
 
-# 无效数据源处理
-else:
-    st.error("Please select a valid source type!")
+# 在线视频检测功能
+elif source_radio == settings.ONLINEVIDEO:
+    helper.play_online_video(confidence, model)  # 在线视频检测
 
 # 显示当前使用的模型信息
 st.sidebar.markdown("---")

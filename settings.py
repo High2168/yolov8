@@ -31,4 +31,5 @@ VIDEOS_DICT = {
 # ML Model config
 MODEL_DIR = ROOT / 'weights'
 DETECTION_MODEL = MODEL_DIR / 'yolov8n.pt'
+DETECTIOS_MODEL = MODEL_DIR / 'yolov8s.pt'
 SEGMENTATION_MODEL = MODEL_DIR / 'yolov8n-seg.pt'

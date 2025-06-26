@@ -20,7 +20,7 @@ st.title("Object Detection using YOLOv8")
 # 侧边栏配置
 st.sidebar.header("ML Model Config")
 
-# 任务选择（增加分割选项）
+# 任务选择
 model_type = st.sidebar.radio("Select Task", ["Detection", "Segmentation"])  # 增加Segmentation
 confidence = float(st.sidebar.slider("Select Model Confidence", 25, 100, 40)) / 100
 
@@ -28,7 +28,6 @@ confidence = float(st.sidebar.slider("Select Model Confidence", 25, 100, 40)) / 
 MODEL_OPTIONS = {
     "YOLOv8n (nano)": "yolov8n.pt",
     "YOLOv8s (small)": "yolov8s.pt",
-    "YOLOv8x (extra large)": "yolov8x.pt",
     "YOLOv8n-seg (segmentation)": "yolov8n-seg.pt"  
 }
 
